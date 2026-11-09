@@ -1,0 +1,6 @@
+---
+# theforeman.foreman is the upstream of Red Hat's redhat.satellite collection: the same
+# modules. Users of the role need it too.
+collections:
+  - name: theforeman.foreman
+    version: ">=5.0.0,<7.0.0"

@@ -1,0 +1,28 @@
+---
+# Entry point for promoting content view versions between lifecycle environments without
+# uploading anything, for example Test to Production after testing:
+#
+#   - ansible.builtin.include_role:
+#       name: libre_devops.satellite_content_upload
+#       tasks_from: promote
+#
+# Idempotent: the version already in the target environments changes nothing.
+
+- name: Promote content view versions
+  module_defaults:
+    group/theforeman.foreman.foreman:
+      server_url: "{{ satellite_content_upload_server_url | default(omit, true) }}"
+      username: "{{ satellite_content_upload_username | default(omit, true) }}"
+      password: "{{ satellite_content_upload_password | default(omit, true) }}"
+      validate_certs: "{{ satellite_content_upload_validate_certs }}"
+      ca_path: "{{ satellite_content_upload_ca_path | default(omit, true) }}"
+      organization: "{{ satellite_content_upload_organization | default(omit, true) }}"
+  block:
+    - name: Promote the version in each source environment
+      theforeman.foreman.content_view_version:
+        content_view: "{{ item.content_view }}"
+        current_lifecycle_environment: "{{ item.from }}"
+        lifecycle_environments: "{{ item.to }}"
+      loop: "{{ satellite_content_upload_promotions }}"
+      loop_control:
+        label: "{{ item.content_view }}: {{ item.from }} to {{ item.to | join(', ') }}"

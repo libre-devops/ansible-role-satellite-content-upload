@@ -1,0 +1,23 @@
+---
+# Upload RPMs to a test Satellite and promote the new content view version to Test. Run on a
+# host with the rpm command (or python3-rpm), requests and PyYAML: often the control node.
+#
+#   export FOREMAN_PASSWORD=...   # or a personal access token
+#   just live inventory.ini -e @vars/test-satellite.yml
+- name: Upload to Satellite
+  hosts: localhost
+  gather_facts: false
+  vars:
+    satellite_content_upload_server_url: https://satellite-test.example.com
+    satellite_content_upload_username: svc-content
+    satellite_content_upload_organization: Example Org
+    satellite_content_upload_uploads:
+      - product: Microsoft
+        repository: Microsoft el9
+        files:
+          - releases/el9/mdatp-101.25092.0005.x86_64.rpm
+    satellite_content_upload_content_views:
+      - name: Microsoft el9
+        lifecycle_environments: [Test]
+  roles:
+    - role: libre_devops.satellite_content_upload

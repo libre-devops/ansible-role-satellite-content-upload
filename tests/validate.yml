@@ -1,0 +1,41 @@
+---
+# Runs without a Satellite (just validate): both entry points with nothing to do, to check the
+# argument specifications and the connection defaults, and a bad value to check it is refused.
+- name: Run both entry points with nothing to do
+  hosts: localhost
+  gather_facts: false
+  vars:
+    satellite_content_upload_server_url: https://satellite.example.com
+    satellite_content_upload_organization: Example Org
+  tasks:
+    - name: Upload nothing
+      ansible.builtin.include_role:
+        name: libre_devops.satellite_content_upload
+
+    - name: Promote nothing
+      ansible.builtin.include_role:
+        name: libre_devops.satellite_content_upload
+        tasks_from: promote
+
+- name: Refuse a bad value
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run with an unknown publish mode
+      block:
+        - name: Upload with publish set to sometimes
+          ansible.builtin.include_role:
+            name: libre_devops.satellite_content_upload
+          vars:
+            satellite_content_upload_publish: sometimes
+
+        - name: Fail if the bad value was accepted
+          ansible.builtin.fail:
+            msg: satellite_content_upload_publish accepted 'sometimes'.
+      rescue:
+        - name: Check the argument specification refused it
+          ansible.builtin.assert:
+            that:
+              - "'satellite_content_upload_publish' in ansible_failed_result.msg | default('')
+                 or 'satellite_content_upload_publish' in (ansible_failed_result.argument_errors | default([]) | join(' '))"
+            quiet: true

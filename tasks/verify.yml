@@ -1,0 +1,45 @@
+---
+# Looks each uploaded file up by file name in its repository. Runs inside the connection
+# defaults set in main.yml.
+
+- name: Find the repositories
+  theforeman.foreman.resource_info:
+    resource: repositories
+    search: 'name = "{{ item.repository }}" and product = "{{ item.product }}"'
+  register: __satellite_content_upload_repositories
+  loop: "{{ satellite_content_upload_uploads }}"
+  loop_control:
+    label: "{{ item.product }} / {{ item.repository }}"
+
+- name: Check each repository was found once
+  ansible.builtin.assert:
+    that:
+      - item.resources | length == 1
+    fail_msg: >-
+      Found {{ item.resources | length }} repositories called '{{ item.item.repository }}' in
+      product '{{ item.item.product }}', expected one.
+    quiet: true
+  loop: "{{ __satellite_content_upload_repositories.results }}"
+  loop_control:
+    label: "{{ item.item.product }} / {{ item.item.repository }}"
+
+- name: Look up the uploaded packages
+  theforeman.foreman.resource_info:
+    resource: packages
+    search: 'filename = "{{ item.1 | basename }}"'
+    params:
+      repository_id: "{{ (__satellite_content_upload_repositories.results | selectattr('item', 'equalto', item.0) | first).resources[0].id }}"
+  register: __satellite_content_upload_packages
+  loop: "{{ satellite_content_upload_uploads | subelements('files') }}"
+  loop_control:
+    label: "{{ item.0.repository }}: {{ item.1 | basename }}"
+
+- name: Check every file is in its repository
+  ansible.builtin.assert:
+    that:
+      - item.resources | length > 0
+    fail_msg: "{{ item.item.1 | basename }} is not in {{ item.item.0.product }} / {{ item.item.0.repository }}."
+    quiet: true
+  loop: "{{ __satellite_content_upload_packages.results }}"
+  loop_control:
+    label: "{{ item.item.1 | basename }}"

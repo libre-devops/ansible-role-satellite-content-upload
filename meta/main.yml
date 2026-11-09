@@ -1,0 +1,31 @@
+---
+galaxy_info:
+  namespace: libre_devops
+  role_name: satellite_content_upload
+  author: Craig Thacker
+  company: Libre DevOps
+  description: >-
+    Upload RPMs and other content to Red Hat Satellite or Foreman Katello repositories, then
+    publish and promote content views, with a separate promote entry point
+  license: MIT
+  min_ansible_version: "2.16"
+  issue_tracker_url: https://github.com/libre-devops/ansible-role-satellite-content-upload/issues
+  platforms:
+    - name: EL
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+    - name: Debian
+      versions:
+        - all
+  galaxy_tags:
+    - satellite
+    - foreman
+    - katello
+    - rpm
+    - contentview
+    - release
+
+dependencies: []

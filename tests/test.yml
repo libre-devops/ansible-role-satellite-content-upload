@@ -1,0 +1,35 @@
+---
+# Syntax check only (just syntax). Exercises both entry points with every option set.
+- name: Both entry points
+  hosts: localhost
+  gather_facts: false
+  vars:
+    satellite_content_upload_server_url: https://satellite.example.com
+    satellite_content_upload_username: svc-content
+    satellite_content_upload_password: not-a-real-password
+    satellite_content_upload_validate_certs: true
+    satellite_content_upload_ca_path: /etc/pki/tls/certs/ca-bundle.crt
+    satellite_content_upload_organization: Example Org
+    satellite_content_upload_uploads:
+      - product: Microsoft
+        repository: Microsoft el9
+        files: [releases/el9/mdatp-101.25092.0005.x86_64.rpm]
+    satellite_content_upload_content_views:
+      - name: Microsoft el9
+        lifecycle_environments: [Test]
+      - name: RHEL 9 composite
+        lifecycle_environments: [Test]
+    satellite_content_upload_publish: always
+    satellite_content_upload_promotions:
+      - content_view: Microsoft el9
+        from: Test
+        to: [Production]
+  tasks:
+    - name: Upload and publish
+      ansible.builtin.include_role:
+        name: libre_devops.satellite_content_upload
+
+    - name: Promote
+      ansible.builtin.include_role:
+        name: libre_devops.satellite_content_upload
+        tasks_from: promote

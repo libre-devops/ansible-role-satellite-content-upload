@@ -1,0 +1,58 @@
+---
+- name: Upload, publish and promote
+  module_defaults:
+    group/theforeman.foreman.foreman:
+      server_url: "{{ satellite_content_upload_server_url | default(omit, true) }}"
+      username: "{{ satellite_content_upload_username | default(omit, true) }}"
+      password: "{{ satellite_content_upload_password | default(omit, true) }}"
+      validate_certs: "{{ satellite_content_upload_validate_certs }}"
+      ca_path: "{{ satellite_content_upload_ca_path | default(omit, true) }}"
+      organization: "{{ satellite_content_upload_organization | default(omit, true) }}"
+  block:
+    - name: Check the files exist
+      ansible.builtin.stat:
+        path: "{{ item.1 }}"
+        get_checksum: false
+      register: __satellite_content_upload_files
+      loop: "{{ satellite_content_upload_uploads | subelements('files') }}"
+      loop_control:
+        label: "{{ item.1 }}"
+
+    - name: Stop if a file is missing
+      ansible.builtin.assert:
+        that:
+          - item.stat.exists
+        fail_msg: "{{ item.item.1 }} does not exist on {{ inventory_hostname }}."
+        quiet: true
+      loop: "{{ __satellite_content_upload_files.results }}"
+      loop_control:
+        label: "{{ item.item.1 }}"
+
+    # content_upload checks the repository for a package with the same name and checksum, so
+    # a file already there is not uploaded again.
+    - name: Upload the files
+      theforeman.foreman.content_upload:
+        src: "{{ item.1 }}"
+        product: "{{ item.0.product }}"
+        repository: "{{ item.0.repository }}"
+      register: __satellite_content_upload_result
+      loop: "{{ satellite_content_upload_uploads | subelements('files') }}"
+      loop_control:
+        label: "{{ item.0.product }} / {{ item.0.repository }}: {{ item.1 | basename }}"
+
+    - name: Publish the content views and promote the new versions
+      theforeman.foreman.content_view_version:
+        content_view: "{{ item.name }}"
+        description: "{{ satellite_content_upload_publish_description }}"
+        lifecycle_environments: "{{ ['Library'] + (item.lifecycle_environments | default([])) }}"
+      loop: "{{ satellite_content_upload_content_views }}"
+      loop_control:
+        label: "{{ item.name }}"
+      when: >-
+        satellite_content_upload_publish == 'always'
+        or (satellite_content_upload_publish == 'changed' and __satellite_content_upload_result is changed)
+
+    # import_tasks, so the connection defaults above apply to the imported tasks too.
+    - name: Check the files are in their repositories
+      ansible.builtin.import_tasks: verify.yml
+      when: satellite_content_upload_verify | bool

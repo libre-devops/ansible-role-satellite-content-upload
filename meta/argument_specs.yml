@@ -1,0 +1,125 @@
+---
+argument_specs:
+  main:
+    short_description: Upload content to Satellite repositories, then publish and promote content views
+    description:
+      - Uploads files from the host the role runs on to Red Hat Satellite (or Foreman with
+        Katello) repositories with theforeman.foreman.content_upload, which skips files
+        already in the repository.
+      - Publishes the given content views when something was uploaded (or always), promotes
+        each new version to the given lifecycle environments, and checks each file is in its
+        repository.
+    author:
+      - Craig Thacker
+    options:
+      satellite_content_upload_server_url: &server_url
+        description: Satellite URL, for example https://satellite.example.com. Empty uses FOREMAN_SERVER_URL.
+        type: str
+        default: ""
+      satellite_content_upload_username: &username
+        description: Satellite user. Empty uses FOREMAN_USERNAME.
+        type: str
+        default: ""
+      satellite_content_upload_password: &password
+        description: The user's password or personal access token. Empty uses FOREMAN_PASSWORD.
+        type: str
+        default: ""
+        no_log: true
+      satellite_content_upload_validate_certs: &validate_certs
+        description: Check the Satellite's TLS certificate.
+        type: bool
+        default: true
+      satellite_content_upload_ca_path: &ca_path
+        description: CA bundle for the Satellite's certificate, if it is not in the system store. Empty uses FOREMAN_CA_PATH.
+        type: str
+        default: ""
+      satellite_content_upload_organization: &organization
+        description: Satellite organisation.
+        type: str
+        default: ""
+      satellite_content_upload_uploads:
+        description: Files to upload, grouped by repository.
+        type: list
+        elements: dict
+        default: []
+        options:
+          product:
+            description: Product the repository belongs to.
+            type: str
+            required: true
+          repository:
+            description: Repository to upload into.
+            type: str
+            required: true
+          files:
+            description: Paths of the files on the host the role runs on.
+            type: list
+            elements: path
+            required: true
+      satellite_content_upload_content_views:
+        description: Content views to publish after the uploads, in order, components before composites.
+        type: list
+        elements: dict
+        default: []
+        options:
+          name:
+            description: Content view name.
+            type: str
+            required: true
+          lifecycle_environments:
+            description: Lifecycle environments to promote the new version to. Library is always included.
+            type: list
+            elements: str
+            default: []
+      satellite_content_upload_publish:
+        description: When to publish the content views.
+        type: str
+        choices: [changed, always, never]
+        default: changed
+      satellite_content_upload_publish_description:
+        description: Description of each new content view version.
+        type: str
+        default: Published by Ansible
+      satellite_content_upload_promotions:
+        description: Promotions for the promote entry point. Ignored by main.
+        type: list
+        elements: dict
+        default: []
+      satellite_content_upload_verify:
+        description: After uploading, check every file is in its repository.
+        type: bool
+        default: true
+
+  promote:
+    short_description: Promote content view versions between lifecycle environments
+    description:
+      - Promotes the content view version in one lifecycle environment to others, for
+        example Test to Production. Uploads nothing. Idempotent.
+    author:
+      - Craig Thacker
+    options:
+      satellite_content_upload_server_url: *server_url
+      satellite_content_upload_username: *username
+      satellite_content_upload_password: *password
+      satellite_content_upload_validate_certs: *validate_certs
+      satellite_content_upload_ca_path: *ca_path
+      satellite_content_upload_organization: *organization
+      satellite_content_upload_promotions:
+        description: The promotions.
+        type: list
+        elements: dict
+        default: []
+        options:
+          content_view:
+            description: Content view name.
+            type: str
+            required: true
+          from:
+            description: The lifecycle environment whose version is promoted.
+            type: str
+            required: true
+          to:
+            description: Lifecycle environments to promote it to.
+            type: list
+            elements: str
+            required: true

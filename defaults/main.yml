@@ -1,0 +1,40 @@
+---
+# Every variable is described in README.md and validated by meta/argument_specs.yml.
+
+# Connection. Anything left empty falls back to the FOREMAN_* environment variable the
+# theforeman.foreman modules read (FOREMAN_SERVER_URL, FOREMAN_USERNAME, FOREMAN_PASSWORD,
+# FOREMAN_VALIDATE_CERTS, FOREMAN_CA_PATH). The password can be a personal access token.
+satellite_content_upload_server_url: ""
+satellite_content_upload_username: ""
+satellite_content_upload_password: ""
+satellite_content_upload_validate_certs: true
+satellite_content_upload_ca_path: ""
+satellite_content_upload_organization: ""
+
+# Files to upload, by repository. Paths are on the host the role runs on.
+#   - product: Microsoft
+#     repository: Microsoft el9
+#     files:
+#       - /srv/releases/el9/mdatp-101.25092.0005.x86_64.rpm
+satellite_content_upload_uploads: []
+
+# Content views to publish after the uploads, in this order (components before composites),
+# and the lifecycle environments to promote each new version to.
+#   - name: Microsoft el9
+#     lifecycle_environments: [Test]
+satellite_content_upload_content_views: []
+
+# When to publish the content views: changed (only when an upload added something), always,
+# or never.
+satellite_content_upload_publish: changed
+satellite_content_upload_publish_description: Published by Ansible
+
+# Promotions for the promote entry point (tasks_from: promote): copy the content view version
+# in one lifecycle environment to others, for example Test to Production.
+#   - content_view: Microsoft el9
+#     from: Test
+#     to: [Production]
+satellite_content_upload_promotions: []
+
+# After uploading, check every file is in its repository.
+satellite_content_upload_verify: true
