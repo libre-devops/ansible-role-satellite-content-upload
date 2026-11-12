@@ -13,7 +13,7 @@ Uploads RPMs (and other content) to Red Hat Satellite or Foreman with Katello, p
 
 [![CI](https://github.com/libre-devops/ansible-role-satellite-content-upload/actions/workflows/ci.yml/badge.svg)](https://github.com/libre-devops/ansible-role-satellite-content-upload/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/libre-devops/ansible-role-satellite-content-upload?sort=semver&label=release)](https://github.com/libre-devops/ansible-role-satellite-content-upload/releases/latest)
-[![Galaxy](https://img.shields.io/badge/galaxy-libre__devops.satellite__content__upload-EE0000?logo=ansible&logoColor=white)](https://galaxy.ansible.com/ui/standalone/roles/libre_devops/satellite_content_upload/)
+[![Galaxy](https://img.shields.io/badge/galaxy-libre__devops.satellite__content__upload-EE0000?logo=ansible&logoColor=white)](https://galaxy.ansible.com/ui/standalone/roles/libre_devops/satellite_content_upload/documentation/)
 [![Licence](https://img.shields.io/github/license/libre-devops/ansible-role-satellite-content-upload)](./LICENSE)
 
 ---
